@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web USB API test</title>
+</head>
+<body>
+<button onclick="requestDevice()">Request device</button><br><br>
+<button onclick="getDevices()">Get devices</button><br><br>
+<button id="device"></button>
+
+<script>
+    async function requestDevice() {
+        try {
+            const device = await navigator.usb.requestDevice({ filters: [{vendorId: 4611}] });
+            console.log('device:',device);
+            console.log('device.configurations:',device.configurations);
+            console.log('device.configuration.interfaces:',device.configuration.interfaces);
+            const elem = document.querySelector('#device');
+            elem.textContent = `Print with '${device.productName}'`;
+            elem.onclick = () => testPrint(device);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function testPrint(device) {
+        const cmds = [
+            'SIZE 48 mm,25 mm',
+            'CLS',
+            'TEXT 30,10,"4",0,1,1,"NavekSoft"',
+            'TEXT 30,50,"2",0,1,1,"WebUSB API"',
+            'BARCODE 30,80,"128",70,1,0,2,2,"altospos.com"',
+            'PRINT 1',
+            'END',
+        ];
+        console.log(device);
+        await device.open();
+        await device.selectConfiguration(1);
+        await device.claimInterface(0);
+        await device.transferOut(
+            device.configuration.interfaces[0].alternate.endpoints.find(obj => obj.direction === 'out').endpointNumber,
+            new Uint8Array(
+                new TextEncoder().encode(cmds.join('\r\n'))
+            ),
+        );
+        await device.close();
+    }
+
+    async function getDevices() {
+        const devices = await navigator.usb.getDevices();
+        devices.forEach((device) => {
+            console.log(`Name: ${device.productName}, Serial: ${device.serialNumber}`);
+        });
+        return devices;
+    }
+
+</script>
+
+</body>
+</html>
