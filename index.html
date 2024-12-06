@@ -31,12 +31,17 @@
             'CLS',
             'TEXT 30,10,"4",0,1,1,"NavekSoft"',
             'TEXT 30,50,"2",0,1,1,"WebUSB API"',
-            'BARCODE 30,80,"128",70,1,0,2,2,"altospos.com"',
+            'BARCODE 30,80,"128",70,1,0,2,2,"navekSoft"',
             'PRINT 1',
             'END',
         ];
-        console.log(device);
+        console.log("Device details:", device);
+        console.log("Opening device...");
         await device.open();
+        console.log("Device opened successfully");
+        console.log("Available configurations:", device.configurations);
+        console.log("Selected configuration:", device.configuration);
+        console.log("Interfaces:", device.configuration.interfaces);
         await device.selectConfiguration(1);
         await device.claimInterface(0);
         await device.transferOut(
